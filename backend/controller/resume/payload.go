@@ -54,5 +54,4 @@ type UpdateResumePayload struct {
     StudyID      uint `json:"study_id"`
     ExperienceID uint `json:"experience_id"`
     SkillID      uint `json:"skill_id"`
-
 }

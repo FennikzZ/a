@@ -6,11 +6,11 @@ import (
 
 type Personal struct {
     gorm.Model
-    FirstName   string `json:"first_name"` // แก้เป็น first_name
-    LastName    string `json:"last_name"`  // แก้เป็น last_name
+    FirstName   string `json:"first_name"`
+    LastName    string `json:"last_name"`  
     Address     string `json:"address"`
     Province    string `json:"province"`
-    PhoneNumber string `json:"phone_number"` // แก้เป็น phone_number
+    PhoneNumber string `json:"phone_number"` 
     Email       string `json:"email"`
     Profile     string `gorm:"type:longtext"`
 }

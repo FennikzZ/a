@@ -86,16 +86,16 @@ function EditResume() {
       messageApi.open({ type: 'error', content: 'ID ไม่ถูกต้อง' });
       return;
     }
-
+  
     try {
-      // ใช้ URL ของไฟล์ใน fileList โดยตรง
-      const profileUrl = fileList.length > 0 ? fileList[0].url : '';
-
+      // ใช้ thumbUrl ของไฟล์แรกใน fileList
+      const profileUrl = fileList.length > 0 ? fileList[0].thumbUrl : '';
+  
       const payload = {
         ...values,
         personal: {
           ...values.personal,
-          Profile: profileUrl, // ใช้ URL ของไฟล์
+          Profile: profileUrl, // ใช้ thumbUrl ของไฟล์
         },
         experience: values.experience ? {
           ...values.experience,
@@ -103,7 +103,7 @@ function EditResume() {
           endDate: values.experience.endDate?.toISOString(),
         } : {},
       };
-
+  
       const res = await UpdateResumeById(id, payload);
       if (res.status === 200) {
         messageApi.open({ type: 'success', content: res.data.message });
@@ -114,10 +114,9 @@ function EditResume() {
     } catch (error) {
       messageApi.open({ type: 'error', content: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
     }
-  };
+  };  
 
   const handleFileChange = ({ fileList }: { fileList: UploadFile[] }) => {
-    // ตรวจสอบว่ามีไฟล์ใน fileList และนำ URL ของไฟล์ที่อัพโหลดไปเก็บ
     const newFileList = fileList.map(file => {
       if (file.url) {
         return file;
@@ -129,7 +128,7 @@ function EditResume() {
     });
     setFileList(newFileList);
   };
-
+  
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
       file.preview = await new Promise<string>((resolve, reject) => {
