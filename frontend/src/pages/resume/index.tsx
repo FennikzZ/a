@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Space, Button, Col, Row, Divider, message, Input, Card, Typography, Image } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
-import { GetResume, DeleteResumeById } from "../../services/https/index"; // Import necessary functions
+import { Button, Col, Row, Divider, message, Card, Typography, Image } from "antd";
+import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { GetResume, GetUsers, DeleteResumeById } from "../../services/https/index"; // Import necessary functions
 
 const { Title } = Typography;
 
@@ -57,6 +57,7 @@ const ResumeMain = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [searchText, setSearchText] = useState<string>('');
   const navigate = useNavigate();
+  const myId = localStorage.getItem("id") || ""; // Get the logged-in user's ID
 
   const handleDelete = async (id: string) => {
     try {
@@ -83,17 +84,19 @@ const ResumeMain = () => {
 
   const getResumeData = async () => {
     try {
-      let res = await GetResume();
-      if (res.status === 200) {
-        setResumeData(res.data);
-        setFilteredData(res.data);
-      } else {
-        setResumeData([]);
-        setFilteredData([]);
-        messageApi.open({
-          type: "error",
-          content: res.data.error,
-        });
+      const usersRes = await GetUsers();
+      if (usersRes.status === 200) {
+        const user = usersRes.data.find((u: { ID: string; resume_id: string }) => u.ID!.toString() === myId);
+        if (user && user.resume_id) {
+          const resumeRes = await GetResume();
+          if (resumeRes.status === 200) {
+            const userResume = resumeRes.data.find((r: Resume) => r.ID === user.resume_id);
+            if (userResume) {
+              setResumeData([userResume]);
+              setFilteredData([userResume]);
+            }
+          }
+        }
       }
     } catch (error) {
       messageApi.open({
@@ -127,20 +130,13 @@ const ResumeMain = () => {
       {contextHolder}
       <Row gutter={16}>
         <Col span={24} style={{ textAlign: "center" }}>
-          <Title level={2} style={{ color: '#06579b', fontSize: '70px', textTransform: 'uppercase',  letterSpacing: '10px' }}>
+          <Title level={2} style={{ color: '#06579b', fontSize: '70px', textTransform: 'uppercase', letterSpacing: '10px' }}>
             RESUME
           </Title>
         </Col>
       </Row>
       <Row gutter={16} style={{ justifyContent: 'center', marginTop: '20px' }}>
-          <Col>
-            <Link to="/resume/create">
-              <Button type="primary" icon={<PlusOutlined />} style={{ backgroundColor: '#06579b', borderColor: '#06579b', borderRadius: '5px' }}>
-                สร้างเรซูเม่
-              </Button>
-            </Link>
-          </Col>
-        </Row>
+      </Row>
       <Divider />
       <Card style={{ backgroundColor: '#f7f9fc', borderRadius: '10px', padding: '20px', margin: 'auto', width: '100%' }}>
         <Row gutter={16} style={{ justifyContent: 'center' }}>
@@ -193,15 +189,6 @@ const ResumeMain = () => {
                       style={{ marginRight: 8, backgroundColor: '#06579b', borderColor: '#06579b', borderRadius: '5px' }}
                     >
                       แก้ไข
-                    </Button>
-                    <Button
-                      type="dashed"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDelete(resume.ID)}
-                      style={{ borderColor: '#06579b', borderRadius: '5px' }}
-                    >
-                      ลบ
                     </Button>
                   </div>
                 }

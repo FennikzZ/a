@@ -9,7 +9,7 @@ export interface PersonalInterface {
   province?: string;
   phone_number?: string;
   email?: string;
-  Profile?: string; // URL หรือ base64 ของรูปโปรไฟล์
+  Profile?: string; 
 }
 
 // ข้อมูลการศึกษา

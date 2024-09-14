@@ -29,13 +29,18 @@ type Users struct {
 
    Gender    *Genders  `gorm:"foreignKey: gender_id" json:"gender"`
 
-   /*Address  string      `json:"address"`
+   Address  string      `json:"address"`
    
    Category  string     `json: "category"`
 
    Wages     uint      `json: "wages"`
 
-   Contact   string     `json: "contact"`*/
+   Contact   string     `json: "contact"`
    
    Profile   string `gorm:"type:longtext"`
+
+   // คงฟิลด์ ResumeID ไว้เพื่อเก็บ ID ของ Resume ที่เกี่ยวข้อง
+    ResumeID  uint     `json:"resume_id"`
+    Resume    Resume   `gorm:"foreignKey:ResumeID;references:ID" json:"resume"`
+
 }

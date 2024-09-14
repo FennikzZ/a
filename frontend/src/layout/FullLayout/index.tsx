@@ -116,7 +116,7 @@ const FullLayout: React.FC = () => {
             >
               <Link to="/customer">
                 <UserOutlined style={{ color: 'white' }} />
-                <span style={{ color: 'white' }}> Resume</span>
+                <span style={{ color: 'white' }}> Customer</span>
               </Link>
             </Button>
             <Button 

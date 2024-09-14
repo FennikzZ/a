@@ -18,7 +18,11 @@ const requestOptions = {
 async function SignIn(data: SignInInterface) {
   return await axios
     .post(`${apiUrl}/signin`, data, requestOptions)
-    .then((res) => res)
+    .then((res) => {
+      // เก็บ resume_id ใน localStorage
+      localStorage.setItem("resume_id", res.data.resume_id);
+      return res;
+    })
     .catch((e) => e.response);
 }
 
@@ -141,12 +145,18 @@ async function GetResume() {
     .catch((e) => e.response);
 }
 
-async function GetResumeById(id: string) {
+async function GetResumeById(resume_id: string) {
+  const resumeId = localStorage.getItem("resume_id");
+  if (!resumeId) {
+    throw new Error("No resume_id found in local storage");
+  }
+
   return await axios
-    .get(`${apiUrl}/resumes/${id}`, requestOptions)
+    .get(`${apiUrl}/resumes/${resumeId}`, requestOptions)
     .then((res) => res)
     .catch((e) => e.response);
 }
+
 
 // ตัวอย่างฟังก์ชัน GetUserProfile
 export const GetUserProfile = async () => {

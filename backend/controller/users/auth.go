@@ -53,13 +53,13 @@ type (
 
        GenderID  uint      `json:"gender_id"`
 
-       /*Address   string     `json:"address"`
+       Address   string     `json:"address"`
        
        Category  string     `json: "category"`
 
        Wages     uint        `json: "wages"`
 
-       Contact   string       `json: "contact"`*/
+       Contact   string       `json: "contact"`
 
        Profile   string `gorm:"type:longtext"`
 
@@ -93,7 +93,11 @@ func SignUp(c *gin.Context) {
     }
 
     // Hash the user's password
-    hashedPassword, _ := config.HashPassword(payload.Password)
+    hashedPassword, err := config.HashPassword(payload.Password)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        return
+    }
 
     // Create a new user
     user := entity.Users{
@@ -104,6 +108,10 @@ func SignUp(c *gin.Context) {
         Password:  hashedPassword,
         BirthDay:  payload.BirthDay,
         GenderID:  payload.GenderID,
+        Address:   payload.Address,
+        Category:  payload.Category,
+        Wages:     payload.Wages,
+        Contact:   payload.Contact,
         Profile:   payload.Profile,
     }
 
@@ -113,14 +121,20 @@ func SignUp(c *gin.Context) {
         return
     }
 
-    // Create an initial resume for the user
+    // Create a new Resume linked to the user
     resume := entity.Resume{
-        UserID: user.ID,
-        // Set other fields as necessary
+        PersonalID: user.ID, // ใช้ ID ของผู้ใช้เป็น PersonalID
     }
 
     if err := db.Create(&resume).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create resume"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create resume"})
+        return
+    }
+
+    // Update the user's ResumeID
+    user.ResumeID = resume.ID
+    if err := db.Save(&user).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user with resume ID"})
         return
     }
 
@@ -130,68 +144,42 @@ func SignUp(c *gin.Context) {
 
 
 func SignIn(c *gin.Context) {
+    var payload Authen
+    var user entity.Users
 
-   var payload Authen
+    if err := c.ShouldBindJSON(&payload); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-   var user entity.Users
+    // ค้นหา user ด้วย Email
+    if err := config.DB().Where("email = ?", payload.Email).First(&user).Error; err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+            return
+        }
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
+    // ตรวจสอบรหัสผ่าน
+    err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "password is incorrect"})
+        return
+    }
 
-   if err := c.ShouldBindJSON(&payload); err != nil {
+    jwtWrapper := services.JwtWrapper{
+        SecretKey:       "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx", // แนะนำให้เก็บใน environment variable
+        Issuer:          "AuthService",
+        ExpirationHours: 24,
+    }
 
-       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    signedToken, err := jwtWrapper.GenerateToken(user.Email)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "error signing token"})
+        return
+    }
 
-       return
-
-   }
-
-   // ค้นหา user ด้วย Username ที่ผู้ใช้กรอกเข้ามา
-
-   if err := config.DB().Raw("SELECT * FROM users WHERE email = ?", payload.Email).Scan(&user).Error; err != nil {
-
-       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-       return
-
-   }
-
-
-   // ตรวจสอบรหัสผ่าน
-
-   err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
-
-   if err != nil {
-
-       c.JSON(http.StatusBadRequest, gin.H{"error": "password is incerrect"})
-
-       return
-
-   }
-
-
-   jwtWrapper := services.JwtWrapper{
-
-       SecretKey:       "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx",
-
-       Issuer:          "AuthService",
-
-       ExpirationHours: 24,
-
-   }
-
-
-   signedToken, err := jwtWrapper.GenerateToken(user.Email)
-
-   if err != nil {
-
-       c.JSON(http.StatusBadRequest, gin.H{"error": "error signing token"})
-
-       return
-
-   }
-
-
-   c.JSON(http.StatusOK, gin.H{"token_type": "Bearer", "token": signedToken, "id": user.ID})
-
-
+    c.JSON(http.StatusOK, gin.H{"token_type": "Bearer", "token": signedToken, "id": user.ID, "resume_id": user.ResumeID})
 }
-

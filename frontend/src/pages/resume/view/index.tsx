@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Col, Row, Card, Typography, Image, Spin, Alert, Button, Progress } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 import { GetResumeById } from "../../../services/https/index";
-import { InfoCircleOutlined, PhoneOutlined, MailOutlined, HomeOutlined, IdcardOutlined, RadarChartOutlined, LaptopOutlined, BookOutlined, ToolOutlined } from '@ant-design/icons';
+import { PhoneOutlined, MailOutlined, HomeOutlined, IdcardOutlined, RadarChartOutlined, LaptopOutlined, BookOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
 
@@ -205,12 +205,7 @@ const ViewResume = () => {
                             </div>
                         </div>
                         <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
-                            <Button
-                                onClick={() => navigate('/resume')}
-                                style={{ backgroundColor: '#06579b', color: '#fff', border: 'none' }}
-                            >
-                                ย้อนกลับ
-                            </Button>
+                            <Button onClick={() => navigate(-1)}>ย้อนกลับ</Button>
                         </div>
                     </Card>
                 </Col>
