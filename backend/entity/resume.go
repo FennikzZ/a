@@ -2,6 +2,7 @@ package entity
 
 import (
     "gorm.io/gorm"
+    "time"
 )
 
 type Personal struct {
@@ -27,8 +28,8 @@ type Experience struct {
     gorm.Model
     JobTitle    string `json:"JobTitle"`
     Company     string `json:"company"`
-    StartDate   string `json:"startDate"` // ใช้ string แทน time.Time
-    EndDate     string `json:"endDate"`   // ใช้ string แทน time.Time
+    StartDate   time.Time `json:"startDate"` // ใช้ string แทน time.Time
+    EndDate     time.Time `json:"endDate"`   // ใช้ string แทน time.Time
 }
 
 type Skill struct {

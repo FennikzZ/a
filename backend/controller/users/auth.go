@@ -123,7 +123,10 @@ func SignUp(c *gin.Context) {
 
     // Create a new Resume linked to the user
     resume := entity.Resume{
-        PersonalID: user.ID, // ใช้ ID ของผู้ใช้เป็น PersonalID
+        PersonalID: 0, // ตั้งค่า PersonalID เป็น 0
+        StudyID: 0, 
+        ExperienceID: 0, 
+        SkillID: 0, 
     }
 
     if err := db.Create(&resume).Error; err != nil {

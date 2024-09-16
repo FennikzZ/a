@@ -1,5 +1,5 @@
 
-    import moment from 'moment';
+import moment from 'moment';
 // ข้อมูลส่วนตัว
 export interface PersonalInterface {
   id?: number; // Primary key
